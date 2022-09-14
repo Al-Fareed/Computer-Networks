@@ -18,6 +18,6 @@ int main()
 	{
 		printf("\nIn Child\n");
 		read(p[0],inbuf,MSGSIZE);
-		printf("\n%s\n",inbuf);
+		printf("\n%c\n",inbuf);
 	}
 }
