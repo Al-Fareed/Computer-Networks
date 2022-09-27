@@ -21,7 +21,7 @@ void main()
 		return;
 	}
 
-	fd_two = open("second.txt",| O_CREAT,| S_IWUSR | S_IRGRP | S_IROTH);
+	fd_two = open("second.txt", | O_CREAT | S_IWUSR | S_IRGRP | S_IROTH);
 	while(read(fd_one, &buf, 1))
 	{
 		write(fd_two, &buf, 1);

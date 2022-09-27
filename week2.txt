@@ -1,0 +1,294 @@
+1)
+#include <unistd.h>
+#include <sys/types.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#define msize 50
+int main()
+{
+        int pid,p[2];
+        int n,i,a1=0,digit=0,len;
+        char str[50];
+        char inbuf[msize];
+        printf("parent process executing\n");
+        printf("enter the string:");
+        scanf("%s",str);
+        pipe(p);
+        write(p[1],str,msize);
+        close(p[1]);
+        pid=fork();
+        if(pid==0)
+        {
+                read(p[0],inbuf,msize);
+                len=strlen(inbuf);
+                for(i=0;i<len;i++)
+                {
+                        char c=inbuf[i];
+                        if((c>='a' && c<='z')||(c>='A' && c<='Z'))
+                                a1++;
+                        else if(c>='0' && c<='9')
+                                digit++;
+                }
+                printf("no.of word %d \n no.of digit %d \n",a1,digit);
+        }
+        return 0;
+}
+
+2)
+#include <stdio.h>
+#include <unistd.h>
+int main()
+{
+        int p[2],sum=0,n,temp;
+        int retval=pipe(p);
+        int pid=fork();
+        if(pid>0)
+        {
+                printf("enter a number:");
+                scanf("%d",&n);
+                write(p[1],&n,sizeof(n));
+        }
+        else if(pid==0)
+        {
+                read(p[0],&n,sizeof(n));
+                temp=n;
+                while(n>0)
+                {
+                        int r=n%10;
+                        sum=sum+(r*r*r);
+                        n=n/10;
+                }
+                if(temp==sum)
+                        printf("%d is a armstrong number\n",temp);
+                else
+                        printf("%d is not a armstrong number\n",temp);
+        }
+        return 0;
+}
+
+3)
+#include<stdio.h>
+#include<stdlib.h>
+#include<unistd.h>
+#include<sys/types.h>
+int main()
+{
+        int fd[2];
+        pipe(fd);
+        if(fork()>0)
+        {
+                close(fd[0]);
+                int arr[20],n;
+                printf("Enter the size\n");
+                scanf("%d",&n);
+                printf("Enter the elements\n");
+                for(int i=0;i<n;i++)
+                        scanf("%d",&arr[i]);
+                write(fd[1],&n,sizeof(n));
+                if(write(fd[1],arr,sizeof(int)*n)==-1)
+                {
+                        printf("Error\n");
+                        return 1;
+                }
+                close(fd[1]);
+        }
+        else
+        {
+                close(fd[1]);
+                int n,a[20],res[20],j=0;
+                read(fd[0],&n,sizeof(int));
+                if(read(fd[0],a,sizeof(int)*n)==-1)
+                {
+                        printf("Error\n");
+                        return 2;
+                }
+                for(int i=0;i<n;i++)
+                {
+                        if(a[i]%2==0)
+                        {
+                                res[j]=a[i];
+                                j++;
+                        }
+                }
+  printf("Even Array\n");
+                for(int i=0;i<j;i++)
+                {
+                        printf("%d ",res[i]);
+                }
+                close(fd[0]);
+        }
+        return 0;
+}
+
+4)
+#include<stdio.h>
+#include<stdlib.h>
+#include<unistd.h>
+#include<sys/types.h>
+int main()
+{
+        int p[2];
+        int retval=pipe (p);
+        if (retval==-1)
+        {
+                printf("pipe failed!\n");
+                return 1;
+        }
+        int id=fork();
+        if(id==0)
+        {
+                int s[3],avg=0, sum=0;
+                char grade;
+                read(p[0],&s,sizeof(s));
+                for(int i=0;i<3;i++)
+                {
+                        sum=sum+s[i];
+                }
+                printf("Sum=%d\n", sum);
+                avg=sum/3;
+                printf("Average=%d\n", avg);
+                if (avg>=90)
+                        grade='A';
+                else if (avg>=80 && avg<90)
+                        grade= 'B';
+                else if (avg>=70 && avg<80)
+                        grade='C';
+                else if (avg>=60 && avg<70)
+                        grade='D';
+                else if(avg>=50 && avg<60)
+                        grade= 'E';
+                else
+                        grade='F';
+                write(p [1],&grade, sizeof (grade));
+                close (p[1]);
+        }
+        else
+        {
+  int m[3],reg;
+                printf("Enter the regno: ");
+                scanf("%d",&reg);
+                printf("Enter the marks:");
+                for (int i=0;i<3;i++)
+                {
+                        scanf("%d",&m[i]);
+                }
+                write(p[1],&m,sizeof (m));
+                close(p[1]);
+                char grade1;
+                read(p[0],&grade1, sizeof (grade1));
+                 printf("Grade of the student Is:%c\n",grade1);
+                  close (p [0]);
+        }
+        return 0;
+}
+
+5)
+#include<stdio.h>
+#include<unistd.h>
+int main()
+{
+        int p[2],r,c,n;
+        int retval=pipe (p);
+        if (retval==-1)
+        {
+                printf("pipe failed!\n");
+                return 1;
+        }
+        printf("Enter the row size:");
+        scanf("%d",&r);
+        printf("Enter the column size:");
+        scanf("%d",&c);
+        printf("Enter the element to be multiplied: ");
+        scanf("%d",&n);
+        int id=fork();
+        if(id==0)
+        {
+                int m[r][c];
+                read (p[0],&m, sizeof(m));
+                for(int i=0;i<r;i++)
+                {
+                        for(int j=0; j<c; j++)
+                        {
+                                m[i][j]=n*m[i][j];
+                        }
+                }
+                close (p[0]);
+                write(p[1],&m, sizeof (m));
+                close (p [1]);
+        }
+        else
+        {
+                int n[r] [c], mat [r] [c];
+                printf("Enter the elements:");
+                for (int i=0;i<r; i++)
+                {
+                        for(int j = 0; j<c; j++)
+                        {
+                                scanf("%d",&n[i] [j]);
+                        }
+     }
+                write(p[1],&n, sizeof(n));
+                close (p [1]);
+                read(p[0],&mat,sizeof (mat));
+                for(int i=0;i<r;i++)
+                {
+                        for (int j = 0; j<c; j++)
+                        {
+                                printf("%d\t", mat [i] [j]);
+                        }
+                        printf("\n");
+                }
+                close (p [0]);
+        }
+        return 0;
+}
+
+
+6)
+#include<stdio.h>
+#include <unistd.h>
+#include<string.h>
+int main()
+{
+        int p[2];
+        int retval=pipe (p);
+        if (retval==-1)
+        {
+                printf("pipe failed ton");
+                return 1;
+        }
+        int id=fork();
+        if(id==0)
+        {
+                char s[10], msg [20];
+                int i=0;
+                read(p[0],&s, sizeof(s));
+                int n=strlen(s);
+                int c=0;
+                for(i=0;i<n/2;i++)
+                {
+                        if(s[i]==s [n-i-1])
+                                c++;
+                }
+                if (c==i)
+                        strcpy(msg, "PALINDROME");
+                else
+                        strcpy(msg, "NOT A PALINDROME");
+                close (p[0]);
+                write(p[1],&msg,sizeof (msg));
+                close(p[1]);
+        }
+        else
+        {
+                char str[10], m[20];
+                printf("Enter the string:");
+                scanf("%s",str);
+                write(p[1],str,sizeof(str));
+                close(p[1]);
+                read (p[0],&m, sizeof (m));
+                printf("%s\n",m);
+                close (p[0]);
+    }
+        return 0;
+}
