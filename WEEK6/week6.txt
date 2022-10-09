@@ -1,0 +1,567 @@
+prg1_c
+................
+#include <netdb.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/socket.h>
+#define MAX 80
+#define PORT 1099
+#define SA struct sockaddr
+void chat_fnc(int sockfd)
+{
+	char buff[MAX];
+	int n;
+	while(1)
+    {
+		bzero(buff, sizeof(buff));
+		printf("Enter the string : ");
+		n = 0;
+		while ((buff[n++] = getchar()) != '\n');
+		write(sockfd, buff, sizeof(buff));
+		bzero(buff, sizeof(buff));
+		read(sockfd, buff, sizeof(buff));
+		printf("From Server : %s", buff);
+		if ((strncmp(buff, "end", 3)) == 0) 
+        {
+			printf("Client Exit...\n");
+			break;
+		}
+	}
+}
+
+int main()
+{
+	int sockfd, connfd;
+	struct sockaddr_in servaddr, cli;
+    sockfd = socket(AF_INET, SOCK_STREAM, 0);
+	if (sockfd == -1) 
+    {
+		printf("socket creation failed...\n");
+		exit(0);
+	}
+	bzero(&servaddr, sizeof(servaddr));
+    servaddr.sin_family = AF_INET;
+	servaddr.sin_addr.s_addr = inet_addr("127.0.0.1");
+	servaddr.sin_port = htons(PORT);
+    if (connect(sockfd, (SA*)&servaddr, sizeof(servaddr)) != 0) {
+		printf("connection with the server failed...\n");
+		exit(0);
+	}
+	chat_fnc(sockfd);
+    close(sockfd);
+}
+
+
+
+prg1_s
+.................
+#include <stdio.h>
+#include <netdb.h>
+#include <netinet/in.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/socket.h>
+#include <sys/types.h>
+#define MAX 80
+#define PORT 1099
+#define SA struct sockaddr
+void chat_fnc(int sockfd)
+{
+	char buff[MAX];
+	int n;
+	while(1) 
+    {
+		bzero(buff, MAX);
+        read(sockfd, buff, sizeof(buff));
+		printf("From client: %sTo client : ", buff);
+		bzero(buff, MAX);
+		n = 0;
+		while ((buff[n++] = getchar()) != '\n');
+        write(sockfd, buff, sizeof(buff));
+        if (strncmp("end", buff, 3) == 0) 
+        {
+			printf("Server Exit...\n");
+			break;
+		}
+	}
+}
+
+int main()
+{
+	int sockfd, connfd, len;
+	struct sockaddr_in servaddr, cli;
+	sockfd = socket(AF_INET, SOCK_STREAM, 0);
+	if (sockfd == -1) 
+    {
+		printf("socket creation failed...\n");
+		exit(0);
+	}
+	bzero(&servaddr, sizeof(servaddr));
+    servaddr.sin_family = AF_INET;
+	servaddr.sin_addr.s_addr = htonl(INADDR_ANY);
+	servaddr.sin_port = htons(PORT);
+    if ((bind(sockfd, (SA*)&servaddr, sizeof(servaddr))) != 0) 
+    {
+		printf("socket bind failed...\n");
+		exit(0);
+	}
+	if ((listen(sockfd, 5)) != 0) {
+		printf("Listen failed...\n");
+		exit(0);
+	}
+	len = sizeof(cli);
+    connfd = accept(sockfd, (SA*)&cli, &len);
+	if (connfd < 0) {
+		printf("server accept failed...\n");
+		exit(0);
+	}
+    printf("wait for client msg \n");
+	chat_fnc(connfd);
+    close(sockfd);
+}
+
+
+
+prg2_c
+.................
+#include <stdio.h>
+#include <netdb.h>
+#include <netinet/in.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/socket.h>
+#include <sys/types.h>
+#define MAX 80
+#define PORT 1099
+#define SA struct sockaddr
+void chat_fnc(int sockfd)
+{
+	char buff[MAX];
+	int n;
+	while(1) 
+    {
+		bzero(buff, MAX);
+        read(sockfd, buff, sizeof(buff));
+		printf("From client: %sTo client : ", buff);
+		bzero(buff, MAX);
+		n = 0;
+		while ((buff[n++] = getchar()) != '\n');
+        write(sockfd, buff, sizeof(buff));
+        if (strncmp("end", buff, 3) == 0) 
+        {
+			printf("Server Exit...\n");
+			break;
+		}
+	}
+}
+
+int main()
+{
+	int sockfd, connfd, len;
+	struct sockaddr_in servaddr, cli;
+	sockfd = socket(AF_INET, SOCK_STREAM, 0);
+	if (sockfd == -1) 
+    {
+		printf("socket creation failed...\n");
+		exit(0);
+	}
+	bzero(&servaddr, sizeof(servaddr));
+    servaddr.sin_family = AF_INET;
+	servaddr.sin_addr.s_addr = htonl(INADDR_ANY);
+	servaddr.sin_port = htons(PORT);
+    if ((bind(sockfd, (SA*)&servaddr, sizeof(servaddr))) != 0) 
+    {
+		printf("socket bind failed...\n");
+		exit(0);
+	}
+	if ((listen(sockfd, 5)) != 0) {
+		printf("Listen failed...\n");
+		exit(0);
+	}
+	len = sizeof(cli);
+    connfd = accept(sockfd, (SA*)&cli, &len);
+	if (connfd < 0) {
+		printf("server accept failed...\n");
+		exit(0);
+	}
+    printf("wait for client msg \n");
+	chat_fnc(connfd);
+    close(sockfd);
+}
+
+
+prg2_s
+..................
+#include <stdio.h>
+#include <netdb.h>
+#include <netinet/in.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/socket.h>
+#include <sys/types.h>
+#define MAX 80
+#define PORT 1099
+#define SA struct sockaddr
+struct ip_sol
+{
+    char class[15];
+    char mask[16];
+};
+void fnc(int sockfd)
+{
+	char buff[MAX];
+	struct ip_sol res;
+	bzero(buff, MAX);
+    read(sockfd, buff, sizeof(buff));
+	printf("From client: %s\n", buff);
+    int n=0;
+    int no=0;
+    while(buff[n]!='.')
+    {
+        no=no*10+(buff[n]-'0');
+        n++;
+    }
+    if(no>=0 && no<128)
+    {
+        strcpy(res.class,"class A");
+        strcpy(res.mask,"255.0.0.0");
+    }
+    else if(no>=128 && no<192)
+    {
+        strcpy(res.class,"class B");
+        strcpy(res.mask,"255.255.0.0");
+    }
+    else if(no>=192 && no<224)
+    {
+        strcpy(res.class,"class C");
+        strcpy(res.mask,"255.255.255.0");
+    }
+    else if(no>=224 && no<240)
+    {
+        strcpy(res.class,"class D");
+        strcpy(res.mask,"255.255.255.255");
+    }
+    else
+    {
+        strcpy(res.class,"class E");
+        strcpy(res.mask,"255.255.255.255");
+    }
+	write(sockfd,&res, sizeof(res));
+}
+
+int main()
+{
+	int sockfd, connfd, len;
+	struct sockaddr_in servaddr, cli;
+	sockfd = socket(AF_INET, SOCK_STREAM, 0);
+	if (sockfd == -1) 
+    {
+		printf("socket creation failed...\n");
+		exit(0);
+	}
+	bzero(&servaddr, sizeof(servaddr));
+    servaddr.sin_family = AF_INET;
+	servaddr.sin_addr.s_addr = htonl(INADDR_ANY);
+	servaddr.sin_port = htons(PORT);
+    if ((bind(sockfd, (SA*)&servaddr, sizeof(servaddr))) != 0) 
+    {
+		printf("socket bind failed...\n");
+		exit(0);
+	}
+	if ((listen(sockfd, 5)) != 0) {
+		printf("Listen failed...\n");
+		exit(0);
+	}
+	len = sizeof(cli);
+    connfd = accept(sockfd, (SA*)&cli, &len);
+	if (connfd < 0) {
+		printf("server accept failed...\n");
+		exit(0);
+	}
+    printf("wait for client msg \n");
+	fnc(connfd);
+    close(sockfd);
+}
+
+
+prg3_c
+...............
+#include <netdb.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/socket.h>
+#define MAX 80
+#define PORT 1099
+#define SA struct sockaddr
+struct account
+{
+    unsigned long int accno;
+    int pin;
+    float amount;
+};
+void fnc(int sockfd)
+{
+	struct account a;
+    char str[100];
+    printf("enter account no : ");
+    scanf("%lu",&a.accno);
+    printf("enter pin : ");
+    scanf("%d",&a.pin);
+    printf("enter withdrawal ammount : ");
+    scanf("%f",&a.amount);
+    send(sockfd,&a,sizeof(a),0);
+    recv(sockfd,str,100,0);
+    printf("status : %s \n",str);
+}
+
+int main()
+{
+	int sockfd, connfd;
+	struct sockaddr_in servaddr, cli;
+    sockfd = socket(AF_INET, SOCK_STREAM, 0);
+	if (sockfd == -1) 
+    {
+		printf("socket creation failed...\n");
+		exit(0);
+	}
+	bzero(&servaddr, sizeof(servaddr));
+    servaddr.sin_family = AF_INET;
+	servaddr.sin_addr.s_addr = inet_addr("127.0.0.1");
+	servaddr.sin_port = htons(PORT);
+    if (connect(sockfd, (SA*)&servaddr, sizeof(servaddr)) != 0) {
+		printf("connection with the server failed...\n");
+		exit(0);
+	}
+	fnc(sockfd);
+    close(sockfd);
+}
+
+prg3_s
+..............
+#include <stdio.h>
+#include <netdb.h>
+#include <netinet/in.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/socket.h>
+#include <sys/types.h>
+#define MAX 80
+#define PORT 1099
+#define SA struct sockaddr
+struct account
+{
+    unsigned long int accno;
+    int pin;
+    float amount;
+};
+void fnc(int sockfd,struct account acc[])
+{
+	struct account a;
+    int flag=0;
+    char str[100];
+    recv(sockfd,&a, sizeof(a),0);
+    for(int i=0;i<5;i++)
+    {
+        if(acc[i].accno==a.accno)
+        {
+            if(acc[i].pin==a.pin)
+            {
+                if((acc[i].amount-a.amount)>=1000)
+                {
+                    acc[i].amount-=a.amount;
+                    sprintf(str,"AMMOUNT DEDUCTED : %.2f\nBALANCE : %.2f ",a.amount,acc[i].amount);
+                }
+                else
+                {
+                    strcpy(str,"INSUFICENT BALANCE");
+                }
+            }
+            else
+            {
+                strcpy(str,"INVALID PIN");
+            }
+            flag=1;
+            break;
+        }
+    }
+    if(flag==0)
+    {
+        strcpy(str,"INVALID ACCOUNT NO");
+    }
+	send(sockfd,str, sizeof(str),0);
+    printf("status sent\n");
+}
+
+int main()
+{
+    struct account acc[5];
+	int sockfd, connfd, len;
+	struct sockaddr_in servaddr, cli;
+    //adding 5 pre known acc no  and pin and balance
+    {
+    acc[0].accno=0123;
+    acc[0].pin=123;
+    acc[0].amount=1000;
+    acc[1].accno=0124;
+    acc[1].pin=124;
+    acc[1].amount=10000;
+    acc[2].accno=125;
+    acc[2].pin=9586;
+    acc[2].amount=2000;
+    acc[3].accno=1204560884;
+    acc[3].pin=2685;
+    acc[3].amount=20000;
+    acc[4].accno=1204560945;
+    acc[4].pin=7956;
+    acc[4].amount=100000;
+    }
+	sockfd = socket(AF_INET, SOCK_STREAM, 0);
+	if (sockfd == -1) 
+    {
+		printf("socket creation failed...\n");
+		exit(0);
+	}
+	bzero(&servaddr, sizeof(servaddr));
+    servaddr.sin_family = AF_INET;
+	servaddr.sin_addr.s_addr = htonl(INADDR_ANY);
+	servaddr.sin_port = htons(PORT);
+    if ((bind(sockfd, (SA*)&servaddr, sizeof(servaddr))) != 0) 
+    {
+		printf("socket bind failed...\n");
+		exit(0);
+	}
+	if ((listen(sockfd, 5)) != 0) {
+		printf("Listen failed...\n");
+		exit(0);
+	}
+	len = sizeof(cli);
+    connfd = accept(sockfd, (SA*)&cli, &len);
+	if (connfd < 0) {
+		printf("server accept failed...\n");
+		exit(0);
+	}
+	fnc(connfd,acc);
+    close(sockfd);
+}
+
+
+prg4_c
+....................
+#include <netdb.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/socket.h>
+#define MAX 80
+#define PORT 1099
+#define SA struct sockaddr
+void fnc(int sockfd)
+{
+    char str[100];
+    float arr[3]={0,0,0};
+    printf("enter co-efficents of quadratic equation (ax^2 + bx + c = 0) a,b,c respectively : ");
+    scanf("%f%f%f",&arr[0],&arr[1],&arr[2]);
+    send(sockfd,arr,sizeof(arr),0);
+    recv(sockfd,str,100,0);
+    printf("roots : %s \n",str);
+}
+
+int main()
+{
+	int sockfd, connfd;
+	struct sockaddr_in servaddr, cli;
+    sockfd = socket(AF_INET, SOCK_STREAM, 0);
+	if (sockfd == -1) 
+    {
+		printf("socket creation failed...\n");
+		exit(0);
+	}
+	bzero(&servaddr, sizeof(servaddr));
+    servaddr.sin_family = AF_INET;
+	servaddr.sin_addr.s_addr = inet_addr("127.0.0.1");
+	servaddr.sin_port = htons(PORT);
+    if (connect(sockfd, (SA*)&servaddr, sizeof(servaddr)) != 0) {
+		printf("connection with the server failed...\n");
+		exit(0);
+	}
+	fnc(sockfd);
+    close(sockfd);
+}
+
+
+prg4_s
+................
+#include <stdio.h>
+#include <netdb.h>
+#include <netinet/in.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/socket.h>
+#include <sys/types.h>
+#include<math.h>
+#define MAX 80
+#define PORT 1099
+#define SA struct sockaddr
+void fnc(int sockfd)
+{
+    char str[100];
+    float arr[3]={0,0,0};
+    recv(sockfd,arr, sizeof(arr),0);
+    float a=arr[0],b=arr[1],c=arr[2];
+    float dif=(b*b)-(4*a*c);
+    if(dif>0)
+    {
+        float r1=(-b+sqrt(dif))/(2*a);
+        float r2=(-b-sqrt(dif))/(2*a);
+        sprintf(str,"real and distinct \nr1 : %.2f\nr2 : %.2f ",r1,r2);
+    }
+    else if(dif==0)
+    {
+        float r=(-b)/(2*a);
+        sprintf(str,"real and roots are equal\nr : %.2f",r);
+    }
+    else
+    {
+        float r1=(-b)/(2*a);
+        float i1=sqrt(-dif)/(2*a);
+        sprintf(str,"imaginary roots \nr1 : %.2f + %.2f i\nr2 : %.2f - %.2f i ",r1,i1,r1,i1);
+    }
+	send(sockfd,str, sizeof(str),0);
+    printf("status sent\n");
+}
+
+int main()
+{
+    int sockfd, connfd, len;
+	struct sockaddr_in servaddr, cli;
+	sockfd = socket(AF_INET, SOCK_STREAM, 0);
+	if (sockfd == -1) 
+    {
+		printf("socket creation failed...\n");
+		exit(0);
+	}
+	bzero(&servaddr, sizeof(servaddr));
+    servaddr.sin_family = AF_INET;
+	servaddr.sin_addr.s_addr = htonl(INADDR_ANY);
+	servaddr.sin_port = htons(PORT);
+    if ((bind(sockfd, (SA*)&servaddr, sizeof(servaddr))) != 0) 
+    {
+		printf("socket bind failed...\n");
+		exit(0);
+	}
+	if ((listen(sockfd, 5)) != 0) {
+		printf("Listen failed...\n");
+		exit(0);
+	}
+	len = sizeof(cli);
+    connfd = accept(sockfd, (SA*)&cli, &len);
+	if (connfd < 0) {
+		printf("server accept failed...\n");
+		exit(0);
+	}
+	fnc(connfd);
+    close(sockfd);
+}
+
