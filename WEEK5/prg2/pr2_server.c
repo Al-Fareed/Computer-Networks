@@ -1,6 +1,3 @@
-//Author Name:Ashuthosh S Padmashali
-//Reg No:210970052
-//Program Name:Program to check whether the given number is armstrong number or not by making use of the shared memory
 #include<sys/ipc.h>
 #include<sys/shm.h>
 #include<stdio.h>

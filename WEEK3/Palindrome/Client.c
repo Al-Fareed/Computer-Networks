@@ -13,11 +13,7 @@ int main()
 	mkfifo("vmfifo",0777);
 	printf("Enter a message : ");
 	scanf("%s",msgbuf);
-	/*if(fi<0)
-	{
-		perror("vmfifo creation failed");
-		exit(1);
-	}*/
+	
 	fd=open("vmfifo",O_WRONLY);
 	/*if (fd<0)
 	{

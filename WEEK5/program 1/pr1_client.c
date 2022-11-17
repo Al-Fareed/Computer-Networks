@@ -1,6 +1,3 @@
-//Author Name:Ashuthosh  S PAdmashali
-//Reg No: 210970052
-//Program Name:Program to implement the shared memory by perfoming the transpose of the matrix
 #include<stdio.h>
 #include<sys/ipc.h>
 #include<sys/shm.h>
